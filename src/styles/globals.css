@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --petal: #FFE8F0;
+    --mint: #E8F9F0;
+    --lavender: #EDE8F9;
+    --sunshine: #FFF8E1;
+    --sky: #E8F4FF;
+    --cream: #FAFAF8;
+    --pink: #FF6B9D;
+    --teal: #06D6A0;
+    --violet: #A78BFA;
+    --gold: #FFD166;
+    --plum: #3D2B6B;
+    --over: #FF5C5C;
+    --near: #FFB347;
+    --ok: #06D6A0;
+    --border: #F0ECF8;
+    --text: #3D2B6B;
+    --text-mid: #7B6A9A;
+    --text-light: #A090C0;
+    --white: #FFFFFF;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+  }
+
+  h1, h2, h3 {
+    font-family: 'DM Serif Display', serif;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'DM Serif Display', serif;
+  }
+  .font-body {
+    font-family: 'DM Sans', sans-serif;
+  }
+  .card {
+    border-radius: 16px;
+    background: var(--white);
+    box-shadow: 0 2px 16px rgba(61,43,107,0.06);
+    padding: 1.25rem;
+  }
+  .card-petal { background: var(--petal); }
+  .card-mint { background: var(--mint); }
+  .card-lavender { background: var(--lavender); }
+  .card-sunshine { background: var(--sunshine); }
+  .card-sky { background: var(--sky); }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+@keyframes ringDraw {
+  from { stroke-dashoffset: 283; }
+  to { stroke-dashoffset: var(--dash-offset); }
+}
+@keyframes barFill {
+  from { width: 0; }
+  to { width: var(--bar-width); }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+.penny-spin {
+  animation: spin 1s linear infinite;
+}
