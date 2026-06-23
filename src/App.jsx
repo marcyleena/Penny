@@ -9,8 +9,7 @@ import Dashboard from './pages/Dashboard'
 import Budget from './pages/Budget'
 import Transactions from './pages/Transactions'
 import Debts from './pages/Debts'
-import Savings from './pages/Savings'
-import SinkingFunds from './pages/SinkingFunds'
+import Goals from './pages/Goals'
 import Bills from './pages/Bills'
 import Subscriptions from './pages/Subscriptions'
 import NetWorth from './pages/NetWorth'
@@ -69,8 +68,7 @@ function AppShell() {
             <Route path="/budget" element={<Budget />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/debts" element={<Debts />} />
-            <Route path="/savings" element={<Savings />} />
-            <Route path="/sinking-funds" element={<SinkingFunds />} />
+            <Route path="/goals" element={<Goals />} />
             <Route path="/bills" element={<Bills />} />
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/net-worth" element={<NetWorth />} />
