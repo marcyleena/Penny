@@ -90,6 +90,13 @@ export default function Login({ onLogin }) {
           <p style={{ color: 'var(--over)', fontSize: 14, marginTop: 12 }}>{error}</p>
         )}
 
+        <p style={{ color: 'var(--text-light)', fontSize: 12, marginTop: 16, lineHeight: 1.6 }}>
+          By accessing Penny you agree to our{' '}
+          <a href="/privacy" style={{ color: 'var(--violet)' }}>Privacy Policy</a> and{' '}
+          <a href="/terms" style={{ color: 'var(--violet)' }}>Terms of Service</a>.
+          Penny uses Claude AI for certain features. You will always be informed when AI is generating content.
+        </p>
+
         <p style={{ color: 'var(--text-light)', fontSize: 13, marginTop: 24 }}>
           Purchased Penny? Use the email you bought with.
         </p>

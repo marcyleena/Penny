@@ -64,6 +64,12 @@ Savings progress: ${savingsProgress || 'no goals set'}`
       )}
 
       {insight && (
+        <div style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 8, marginBottom: 4 }}>
+          AI-generated content &nbsp;|&nbsp; Powered by Anthropic Claude &nbsp;|&nbsp; For informational purposes only, not financial advice
+        </div>
+      )}
+
+      {insight && (
         <div style={{
           background: 'rgba(255,255,255,0.7)', borderRadius: 12, padding: '1rem',
           marginTop: 8, color: 'var(--plum)', lineHeight: 1.7, fontSize: 15,

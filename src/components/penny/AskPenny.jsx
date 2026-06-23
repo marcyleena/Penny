@@ -144,16 +144,21 @@ export default function AskPenny() {
                 </>
               )}
               {messages.map((m, i) => (
-                <div key={i} style={{
-                  alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-                  maxWidth: '85%',
-                  background: m.role === 'user' ? 'var(--plum)' : 'var(--lavender)',
-                  color: m.role === 'user' ? '#fff' : 'var(--plum)',
-                  borderRadius: m.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                  padding: '0.75rem 1rem', fontSize: 14, lineHeight: 1.6,
-                  whiteSpace: 'pre-wrap',
-                }}>
-                  {m.content}
+                <div key={i} style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
+                  {m.role === 'assistant' && (
+                    <div style={{ fontSize: 10, color: 'var(--text-light)', marginBottom: 3, paddingLeft: 2 }}>
+                      AI-generated &nbsp;|&nbsp; Anthropic Claude &nbsp;|&nbsp; Not financial advice
+                    </div>
+                  )}
+                  <div style={{
+                    background: m.role === 'user' ? 'var(--plum)' : 'var(--lavender)',
+                    color: m.role === 'user' ? '#fff' : 'var(--plum)',
+                    borderRadius: m.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                    padding: '0.75rem 1rem', fontSize: 14, lineHeight: 1.6,
+                    whiteSpace: 'pre-wrap',
+                  }}>
+                    {m.content}
+                  </div>
                 </div>
               ))}
               {loading && messages[messages.length-1]?.role === 'user' && (

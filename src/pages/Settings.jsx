@@ -151,6 +151,27 @@ export default function Settings() {
         </div>
       </Section>
 
+      {/* Legal */}
+      <Section title="Legal ⚖️">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <a href="/privacy" style={legalLink}>
+            📄 Privacy Policy
+          </a>
+          <a href="/terms" style={legalLink}>
+            📋 Terms of Service
+          </a>
+          <a
+            href="mailto:createwithskai@gmail.com?subject=Penny%20Data%20Deletion%20Request"
+            style={{ ...legalLink, color: 'var(--over)' }}
+          >
+            🗑️ Delete my data
+          </a>
+          <p style={{ fontSize: 12, color: 'var(--text-light)', margin: '4px 0 0', lineHeight: 1.5 }}>
+            To request deletion of your data, email us and we'll process your request within 30 days. Note: all app data is stored locally on your device — you can also clear it instantly via the Data section above.
+          </p>
+        </div>
+      </Section>
+
       {/* About */}
       <Section title="About Penny">
         <div style={{ color: 'var(--text-mid)', fontSize: 14, lineHeight: 1.8 }}>
@@ -185,4 +206,9 @@ const inputSt = {
   border:'1.5px solid var(--border)', borderRadius:10, padding:'10px 14px',
   fontSize:14, fontFamily:"'DM Sans',sans-serif", color:'var(--plum)',
   outline:'none', boxSizing:'border-box', background:'#fff',
+}
+
+const legalLink = {
+  color: 'var(--violet)', fontSize: 14, fontWeight: 600,
+  textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8,
 }

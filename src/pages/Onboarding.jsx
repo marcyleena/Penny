@@ -121,6 +121,13 @@ export default function Onboarding({ onComplete }) {
             <li>Copy your key and paste it below</li>
           </ol>
         </div>
+        <div style={{
+          background: 'var(--sky)', borderRadius: 12, padding: '0.875rem 1rem',
+          marginBottom: '1.25rem', fontSize: 13, color: 'var(--plum)', lineHeight: 1.6,
+          border: '1px solid #C7E3FF',
+        }}>
+          ℹ️ Penny's AI features are powered by Anthropic's Claude AI. When you use these features, your financial queries are sent directly from your browser to Anthropic using your API key. Penny never stores or transmits your API key. <a href="https://www.anthropic.com/privacy" target="_blank" rel="noreferrer" style={{ color: 'var(--violet)' }}>Anthropic's Privacy Policy</a> governs how they handle your queries. Typical cost: under $0.50/month. Many users qualify for the free tier.
+        </div>
         <div style={{ position: 'relative' }}>
           <input
             type={showKey ? 'text' : 'password'}
