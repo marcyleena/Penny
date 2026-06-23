@@ -13,6 +13,7 @@ const NAV = [
   { to: '/net-worth', label: 'Net Worth', icon: '💎' },
   { to: '/annual', label: 'Annual Overview', icon: '📅' },
   { to: '/settings', label: 'Settings', icon: '⚙️' },
+  { to: '/help', label: 'Help & Support', icon: '💬' },
 ]
 
 export default function Sidebar({ onClose }) {

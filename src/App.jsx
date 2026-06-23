@@ -15,6 +15,7 @@ import Subscriptions from './pages/Subscriptions'
 import NetWorth from './pages/NetWorth'
 import Annual from './pages/Annual'
 import Settings from './pages/Settings'
+import Help from './pages/Help'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
 import DataDeletion from './pages/DataDeletion'
@@ -77,6 +78,7 @@ function AppShell() {
             <Route path="/net-worth" element={<NetWorth />} />
             <Route path="/annual" element={<Annual />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/help" element={<Help />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/data-deletion" element={<DataDeletion />} />
