@@ -5,17 +5,17 @@ import PennyCoin from '../penny/PennyCoin'
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: '📊' },
-  { to: '/budget', label: 'Budget', icon: '🎯' },
-  { to: '/transactions', label: 'Transactions', icon: '💳' },
-  { to: '/debts', label: 'Debt Tracker', icon: '📉' },
+  { to: '/budget', label: 'Budget', icon: '🎯', tourClass: 'tour-nav-budget' },
+  { to: '/transactions', label: 'Transactions', icon: '💳', tourClass: 'tour-nav-transactions' },
+  { to: '/debts', label: 'Debt Tracker', icon: '📉', tourClass: 'tour-nav-debts' },
   { to: '/goals', label: 'Goals', icon: '🌱' },
-  { to: '/circles', label: 'Circles', icon: '⭕' },
+  { to: '/circles', label: 'Circles', icon: '⭕', tourClass: 'tour-nav-circles' },
   { to: '/bills', label: 'Bills', icon: '🧾' },
   { to: '/subscriptions', label: 'Subscriptions', icon: '🔍' },
   { to: '/net-worth', label: 'Net Worth', icon: '💎' },
   { to: '/annual', label: 'Annual Overview', icon: '📅' },
-  { to: '/settings', label: 'Settings', icon: '⚙️' },
-  { to: '/help', label: 'Help & Support', icon: '💬' },
+  { to: '/settings', label: 'Settings', icon: '⚙️', tourClass: 'tour-nav-settings' },
+  { to: '/help', label: 'Help & Support', icon: '💬', tourClass: 'tour-nav-help' },
 ]
 
 export default function Sidebar({ onClose }) {
@@ -44,12 +44,13 @@ export default function Sidebar({ onClose }) {
 
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: 'auto' }}>
-        {NAV.map(({ to, label, icon }) => (
+        {NAV.map(({ to, label, icon, tourClass }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
             onClick={onClose}
+            className={tourClass}
             style={({ isActive }) => ({
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '10px 1.25rem',

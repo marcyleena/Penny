@@ -82,6 +82,7 @@ export default function AskPenny() {
       {/* Floating button */}
       <button
         onClick={() => setOpen(true)}
+        className="tour-ask-penny"
         style={{
           position: 'fixed', bottom: 24, right: 24,
           width: 56, height: 56, borderRadius: '50%',

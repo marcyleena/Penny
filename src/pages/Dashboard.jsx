@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import PennyTour from '../components/penny/PennyTour'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import StatCard from '../components/ui/StatCard'
 import ProgressBar from '../components/ui/ProgressBar'
@@ -81,6 +82,7 @@ export default function Dashboard() {
 
   return (
     <div style={{ padding: '1.5rem', maxWidth: 1100, margin: '0 auto' }}>
+      <PennyTour />
       {/* Month selector */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", color: 'var(--plum)', margin: 0, fontSize: 28 }}>
@@ -96,7 +98,7 @@ export default function Dashboard() {
       </div>
 
       {/* Penny's Take */}
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div className="tour-pennys-take" style={{ marginBottom: '1.5rem' }}>
         <PennyTake
           year={year} month={month}
           totalIncome={totalIncome} totalSpent={totalSpent} remaining={remaining}
@@ -108,7 +110,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+      <div className="tour-stat-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
         <StatCard label="Total Income" value={formatCurrency(totalIncome, currency)} icon="💚" bg="var(--mint)" color="var(--teal)" />
         <StatCard label="Total Spent" value={formatCurrency(totalSpent, currency)} icon="💸" bg="var(--petal)" color="var(--pink)" />
         <StatCard label="Remaining" value={formatCurrency(remaining, currency)} icon="✨" bg="var(--lavender)" color="var(--violet)" />

@@ -193,7 +193,7 @@ export default function Login({ onLogin }) {
 
         {mode === 'signup' && (
           <div style={{ marginTop: 16, background: 'var(--lavender)', borderRadius: 12, padding: '0.875rem 1rem', fontSize: 13, color: 'var(--plum)', textAlign: 'left', lineHeight: 1.6 }}>
-            🔑 <strong>Purchase required.</strong> Penny is a one-time purchase. Your account is linked to the email you bought with. <a href="https://stan.store" target="_blank" rel="noreferrer" style={{ color: 'var(--violet)' }}>Get Penny →</a>
+            🔑 <strong>Purchase required.</strong> Penny is a one-time purchase. Your account is linked to the email you bought with. <a href="https://stan.store/createwithskai/p/penny--ai-budget-manager" target="_blank" rel="noreferrer" style={{ color: 'var(--violet)' }}>Get Penny →</a>
           </div>
         )}
 

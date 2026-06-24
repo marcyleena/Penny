@@ -3,6 +3,7 @@ import Button from '../components/ui/Button'
 import { useStorage, getStored, setStored } from '../hooks/useStorage'
 import { callPenny } from '../hooks/usePenny'
 import { DEFAULT_CATEGORIES } from '../utils/categories'
+import { startTour } from '../components/penny/PennyTour'
 
 const CURRENCIES = ['USD','GBP','EUR','CAD','AUD','ZAR','NGN','JPY','CHF','SEK','NZD','SGD','HKD','INR','BRL']
 
@@ -275,6 +276,19 @@ export default function Settings() {
             To request deletion of your data, email us and we'll process your request within 30 days. Note: all app data is stored locally on your device — you can also clear it instantly via the Data section above.
           </p>
         </div>
+      </Section>
+
+      {/* App */}
+      <Section title="App 🎓">
+        <p style={{ color: 'var(--text-mid)', fontSize: 14, margin: '0 0 1rem' }}>
+          Relaunch the guided tour to revisit how Penny works.
+        </p>
+        <Button variant="violet" onClick={() => {
+          localStorage.removeItem('penny_tour_complete')
+          window.location.href = '/'
+        }}>
+          🪙 Restart tour
+        </Button>
       </Section>
 
       {/* About */}
