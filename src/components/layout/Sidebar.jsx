@@ -1,6 +1,7 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { getStored } from '../../hooks/useStorage'
+import PennyCoin from '../penny/PennyCoin'
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: '📊' },
@@ -30,11 +31,7 @@ export default function Sidebar({ onClose }) {
     }}>
       {/* Logo */}
       <div style={{ padding: '1.5rem 1.25rem 1rem', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 36, height: 36, borderRadius: '50%',
-          background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 18,
-        }}>🪙</div>
+        <PennyCoin size={36} />
         <span style={{ fontFamily: "'DM Serif Display', serif", color: '#fff', fontSize: 22 }}>Penny</span>
         {onClose && (
           <button onClick={onClose} style={{

@@ -15,6 +15,7 @@ import Subscriptions from './pages/Subscriptions'
 import NetWorth from './pages/NetWorth'
 import Annual from './pages/Annual'
 import Settings from './pages/Settings'
+import PennyCoin from './components/penny/PennyCoin'
 import Help from './pages/Help'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
@@ -60,7 +61,7 @@ function AppShell() {
           }}>
             <button onClick={() => setSidebarOpen(true)} style={{ background: 'none', border: 'none', color: '#fff', fontSize: 22, cursor: 'pointer', padding: 0 }}>☰</button>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🪙</div>
+              <PennyCoin size={28} />
               <span style={{ color: '#fff', fontFamily: "'DM Serif Display', serif", fontSize: 18 }}>Penny</span>
             </div>
           </div>

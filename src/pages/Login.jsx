@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Button from '../components/ui/Button'
+import PennyCoin from '../components/penny/PennyCoin'
 import { setStored } from '../hooks/useStorage'
 
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIgotaPkBpHcYJmp1amQU4bphwzUdz8JYaVaxesZQpU0Z9iX2YqcKszRFhEGBuMIOPdA/exec'
@@ -49,13 +50,9 @@ export default function Login({ onLogin }) {
         textAlign: 'center',
       }}>
         {/* Logo */}
-        <div style={{
-          width: 72, height: 72, borderRadius: '50%',
-          background: 'var(--gold)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 36, margin: '0 auto 1.25rem',
-          boxShadow: '0 4px 20px rgba(255,209,102,0.4)',
-        }}>🪙</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.25rem', filter: 'drop-shadow(0 4px 12px rgba(255,209,102,0.45))' }}>
+          <PennyCoin size={72} />
+        </div>
 
         <h1 style={{
           fontFamily: "'DM Serif Display', serif",

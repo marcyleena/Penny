@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import PennyAvatar from './PennyAvatar'
+import PennyCoin from './PennyCoin'
 import Button from '../ui/Button'
 import { callPenny, PENNY_CHAT_SYSTEM } from '../../hooks/usePenny'
 import { formatCurrency } from '../../utils/formatters'
@@ -84,15 +85,15 @@ export default function AskPenny() {
         style={{
           position: 'fixed', bottom: 24, right: 24,
           width: 56, height: 56, borderRadius: '50%',
-          background: 'var(--gold)', border: 'none', cursor: 'pointer',
-          fontSize: 26, display: open ? 'none' : 'flex',
+          background: 'none', border: 'none', cursor: 'pointer',
+          display: open ? 'none' : 'flex',
           alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(255,209,102,0.5)',
-          zIndex: 900, transition: 'transform 0.2s',
+          filter: 'drop-shadow(0 4px 16px rgba(255,209,102,0.55))',
+          zIndex: 900, padding: 0,
         }}
         title="Ask Penny"
       >
-        🪙
+        <PennyCoin size={56} />
       </button>
 
       {/* Drawer */}

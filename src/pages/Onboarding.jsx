@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Button from '../components/ui/Button'
 import PennyAvatar from '../components/penny/PennyAvatar'
+import PennyCoin from '../components/penny/PennyCoin'
 import { setStored } from '../hooks/useStorage'
 
 const CURRENCIES = ['USD','GBP','EUR','CAD','AUD','ZAR','NGN','JPY','CHF','SEK','NZD','SGD','HKD','INR','BRL']
@@ -48,12 +49,11 @@ export default function Onboarding({ onComplete }) {
     <div style={wrapStyle}>
       <div className="fade-in" style={{ ...cardStyle, textAlign: 'center' }}>
         {progressDots}
-        <PennyAvatar size={64} style={{ margin: '0 auto 1.5rem' }} />
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-          <PennyAvatar size={64} />
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem', filter: 'drop-shadow(0 4px 12px rgba(255,209,102,0.4))' }}>
+          <PennyCoin size={72} />
         </div>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: 'var(--plum)', margin: '0 0 1rem' }}>
-          Hi, I'm Penny 🪙
+          Hi, I'm Penny
         </h1>
         <p style={{ color: 'var(--text-mid)', lineHeight: 1.7, marginBottom: '1rem' }}>
           Your AI-powered money manager. I'll help you track spending, crush debt, hit savings goals, and tell you exactly what your money is doing.
