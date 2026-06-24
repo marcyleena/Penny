@@ -9,6 +9,7 @@ const NAV = [
   { to: '/transactions', label: 'Transactions', icon: '💳' },
   { to: '/debts', label: 'Debt Tracker', icon: '📉' },
   { to: '/goals', label: 'Goals', icon: '🌱' },
+  { to: '/circles', label: 'Circles', icon: '⭕' },
   { to: '/bills', label: 'Bills', icon: '🧾' },
   { to: '/subscriptions', label: 'Subscriptions', icon: '🔍' },
   { to: '/net-worth', label: 'Net Worth', icon: '💎' },

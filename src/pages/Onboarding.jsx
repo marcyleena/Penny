@@ -1,25 +1,71 @@
 import React, { useState } from 'react'
 import Button from '../components/ui/Button'
-import PennyAvatar from '../components/penny/PennyAvatar'
 import PennyCoin from '../components/penny/PennyCoin'
 import { setStored } from '../hooks/useStorage'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
 const CURRENCIES = ['USD','GBP','EUR','CAD','AUD','ZAR','NGN','JPY','CHF','SEK','NZD','SGD','HKD','INR','BRL']
+
+const BUDGET_METHODS = [
+  {
+    id: 'zerobased',
+    label: 'I want to know where every dollar goes',
+    description: 'Every dollar gets assigned a job. Income minus all assigned expenses equals zero. Total control, total visibility.',
+    tooltip: 'Best for: women who want to track every dollar and leave nothing unaccounted for.',
+    border: 'var(--violet)',
+    bg: 'var(--lavender)',
+  },
+  {
+    id: 'payyourselffirst',
+    label: 'I want to save automatically and not stress about the rest',
+    description: 'Decide your savings amount first, automate it, then spend the rest however you want.',
+    tooltip: 'Best for: busy women who want to build wealth without tracking every purchase.',
+    border: 'var(--teal)',
+    bg: 'var(--mint)',
+  },
+  {
+    id: '4buckets',
+    label: 'I want a simple system that fits my real life',
+    description: 'Four buckets: Fixed Needs, Variable Needs, Goals, and Fun. Simple, flexible, built for real life.',
+    tooltip: 'Best for: women with variable income, side hustles, or anyone who wants structure without rigidity.',
+    border: 'var(--pink)',
+    bg: 'var(--petal)',
+    recommended: true,
+  },
+]
 
 export default function Onboarding({ onComplete }) {
   const [step, setStep] = useState(1)
   const [name, setName] = useState('')
   const [currency, setCurrency] = useState('USD')
+  const [budgetMethod, setBudgetMethod] = useState('4buckets')
   const [apiKey, setApiKey] = useState('')
   const [showKey, setShowKey] = useState(false)
 
   function nextStep() { setStep(s => s + 1) }
 
-  function finish() {
+  async function finish() {
     setStored('penny_name', name)
     setStored('penny_currency', currency)
+    setStored('penny_budget_method', budgetMethod)
     if (apiKey.trim()) setStored('penny_api_key', apiKey.trim())
     setStored('penny_onboarded', true)
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          await supabase.from('profiles').upsert({
+            id: user.id,
+            email: user.email,
+            first_name: name,
+            currency,
+            budget_method: budgetMethod,
+          })
+        }
+      } catch {}
+    }
+
     onComplete()
   }
 
@@ -30,12 +76,13 @@ export default function Onboarding({ onComplete }) {
   }
   const cardStyle = {
     background: '#fff', borderRadius: 24,
-    padding: '2.5rem 2rem', width: '100%', maxWidth: 480,
+    padding: '2.5rem 2rem', width: '100%', maxWidth: 520,
     boxShadow: '0 8px 40px rgba(61,43,107,0.12)',
   }
+  const totalSteps = 5
   const progressDots = (
     <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: '1.75rem' }}>
-      {[1,2,3,4].map(n => (
+      {Array.from({ length: totalSteps }, (_, i) => i + 1).map(n => (
         <div key={n} style={{
           width: 8, height: 8, borderRadius: '50%',
           background: n <= step ? 'var(--violet)' : 'var(--border)',
@@ -59,7 +106,7 @@ export default function Onboarding({ onComplete }) {
           Your AI-powered money manager. I'll help you track spending, crush debt, hit savings goals, and tell you exactly what your money is doing.
         </p>
         <p style={{ color: 'var(--text-mid)', fontSize: 15, marginBottom: '2rem' }}>
-          Let's get you set up in 3 steps.
+          Let's get you set up in 4 steps.
         </p>
         <Button variant="plum" onClick={nextStep} style={{ width: '100%', justifyContent: 'center' }}>
           Let's go →
@@ -105,6 +152,51 @@ export default function Onboarding({ onComplete }) {
       <div className="fade-in" style={cardStyle}>
         {progressDots}
         <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: 'var(--plum)', margin: '0 0 0.5rem' }}>
+          How do you want to manage your money?
+        </h2>
+        <p style={{ color: 'var(--text-mid)', fontSize: 14, marginBottom: '1.25rem' }}>
+          Pick the style that sounds most like you. You can always change this in Settings.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: '1.5rem' }}>
+          {BUDGET_METHODS.map(m => (
+            <div
+              key={m.id}
+              onClick={() => setBudgetMethod(m.id)}
+              style={{
+                borderRadius: 14, padding: '1rem 1.25rem',
+                border: `2px solid ${budgetMethod === m.id ? m.border : 'var(--border)'}`,
+                background: budgetMethod === m.id ? m.bg : '#fff',
+                cursor: 'pointer', transition: 'all 0.2s',
+                borderLeft: `4px solid ${m.border}`,
+                position: 'relative',
+              }}
+            >
+              {m.recommended && (
+                <div style={{
+                  position: 'absolute', top: -10, right: 12,
+                  background: 'var(--pink)', color: '#fff',
+                  fontSize: 10, fontWeight: 700, borderRadius: 99,
+                  padding: '2px 8px', letterSpacing: '0.05em',
+                }}>PENNY RECOMMENDS</div>
+              )}
+              <div style={{ fontWeight: 600, color: 'var(--plum)', fontSize: 14, marginBottom: 4 }}>{m.label}</div>
+              <div style={{ color: 'var(--text-mid)', fontSize: 13, lineHeight: 1.5, marginBottom: 6 }}>{m.description}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-light)', fontStyle: 'italic' }}>{m.tooltip}</div>
+            </div>
+          ))}
+        </div>
+        <Button variant="plum" onClick={nextStep} style={{ width: '100%', justifyContent: 'center' }}>
+          Continue →
+        </Button>
+      </div>
+    </div>
+  )
+
+  if (step === 4) return (
+    <div style={wrapStyle}>
+      <div className="fade-in" style={cardStyle}>
+        {progressDots}
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: 'var(--plum)', margin: '0 0 0.5rem' }}>
           Set up Penny's AI brain
         </h2>
         <p style={{ color: 'var(--text-mid)', fontSize: 14, marginBottom: '1.25rem' }}>
@@ -126,7 +218,7 @@ export default function Onboarding({ onComplete }) {
           marginBottom: '1.25rem', fontSize: 13, color: 'var(--plum)', lineHeight: 1.6,
           border: '1px solid #C7E3FF',
         }}>
-          ℹ️ Penny's AI features are powered by Anthropic's Claude AI. When you use these features, your financial queries are sent directly from your browser to Anthropic using your API key. Penny never stores or transmits your API key. <a href="https://www.anthropic.com/privacy" target="_blank" rel="noreferrer" style={{ color: 'var(--violet)' }}>Anthropic's Privacy Policy</a> governs how they handle your queries. Typical cost: under $0.50/month. Many users qualify for the free tier.
+          ℹ️ When you use AI features, your financial queries are sent directly from your browser to Anthropic using your API key. Penny never stores or transmits your API key. <a href="https://www.anthropic.com/privacy" target="_blank" rel="noreferrer" style={{ color: 'var(--violet)' }}>Anthropic's Privacy Policy</a> governs how they handle your queries.
         </div>
         <div style={{ position: 'relative' }}>
           <input

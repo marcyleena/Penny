@@ -1,5 +1,9 @@
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "notes": "IMPORTANT — before deploying, add these environment variables in Vercel Dashboard > Settings > Environment Variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY. Without them, Penny Circles and Supabase Auth will not work."
 }

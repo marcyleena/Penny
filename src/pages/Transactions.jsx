@@ -5,11 +5,7 @@ import { useStorage } from '../hooks/useStorage'
 import { formatCurrency, formatDate, todayISO } from '../utils/formatters'
 import { categoryColour, categoryBg } from '../utils/colours'
 import { callPenny } from '../hooks/usePenny'
-
-const DEFAULT_CATEGORIES = [
-  'Housing','Food & Groceries','Transport','Utilities','Entertainment',
-  'Health','Clothing','Personal Care','Savings','Other','Income',
-]
+import { DEFAULT_CATEGORIES } from '../utils/categories'
 
 export default function Transactions() {
   const [transactions, setTransactions] = useStorage('penny_transactions', [])
@@ -21,13 +17,28 @@ export default function Transactions() {
   const [csvText, setCsvText] = useState('')
   const [csvParsed, setCsvParsed] = useState(null)
   const [csvLoading, setCsvLoading] = useState(false)
-  const [form, setForm] = useState({ date: todayISO(), description: '', amount: '', category: categories[0], notes: '', type: 'expense' })
+  const [form, setForm] = useState({
+    date: todayISO(), description: '', amount: '', category: categories[0],
+    notes: '', type: 'expense', isSideHustle: false, taxRate: 25,
+  })
+
+  const taxReserve = form.isSideHustle && form.amount
+    ? Math.round((Number(form.amount) * form.taxRate) / 100 * 100) / 100
+    : 0
 
   function addTransaction() {
     if (!form.description || !form.amount) return
-    const tx = { ...form, amount: Math.abs(Number(form.amount)), id: Date.now() }
+    const tx = {
+      ...form,
+      amount: Math.abs(Number(form.amount)),
+      taxReserve: form.isSideHustle ? taxReserve : 0,
+      id: Date.now(),
+    }
     setTransactions(prev => [tx, ...prev])
-    setForm({ date: todayISO(), description: '', amount: '', category: categories[0], notes: '', type: 'expense' })
+    setForm({
+      date: todayISO(), description: '', amount: '', category: categories[0],
+      notes: '', type: 'expense', isSideHustle: false, taxRate: 25,
+    })
     setAddOpen(false)
   }
 
@@ -45,7 +56,7 @@ export default function Transactions() {
         'You are a financial data parser. Return only valid JSON arrays, no other text.',
         `Parse this bank statement CSV and extract transactions. For each transaction return: date (YYYY-MM-DD), description, amount (positive=income, negative=expense), and suggested category from this list: ${catList}. Return as JSON array only.\n\nCSV:\n${csvText.slice(0, 4000)}`
       )
-      const parsed = JSON.parse(result.trim().replace(/```json|```/g,''))
+      const parsed = JSON.parse(result.trim().replace(/```json|```/g, ''))
       setCsvParsed(parsed.map((t, i) => ({
         ...t,
         id: Date.now() + i,
@@ -53,7 +64,7 @@ export default function Transactions() {
         amount: Math.abs(t.amount),
         selected: true,
       })))
-    } catch (e) {
+    } catch {
       alert('Could not parse CSV. Make sure your API key is configured in Settings.')
     }
     setCsvLoading(false)
@@ -73,8 +84,9 @@ export default function Transactions() {
     t.type === 'income'
   ).sort((a, b) => new Date(b.date) - new Date(a.date))
 
-  const totalIncome = transactions.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0)
-  const totalExpense = transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0)
+  const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+  const totalTaxReserve = transactions.filter(t => t.isSideHustle).reduce((s, t) => s + (t.taxReserve || 0), 0)
 
   return (
     <div style={{ padding: '1.5rem', maxWidth: 900, margin: '0 auto' }}>
@@ -98,13 +110,19 @@ export default function Transactions() {
         </div>
         <div style={{ background: 'var(--lavender)', borderRadius: 14, padding: '1rem' }}>
           <div style={{ fontSize: 12, color: 'var(--text-mid)', fontWeight: 600 }}>Net</div>
-          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: totalIncome-totalExpense >= 0 ? 'var(--ok)' : 'var(--over)' }}>{formatCurrency(totalIncome-totalExpense, currency)}</div>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: totalIncome - totalExpense >= 0 ? 'var(--ok)' : 'var(--over)' }}>{formatCurrency(totalIncome - totalExpense, currency)}</div>
         </div>
+        {totalTaxReserve > 0 && (
+          <div style={{ background: '#FFF7ED', borderRadius: 14, padding: '1rem', borderLeft: '3px solid var(--gold)' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-mid)', fontWeight: 600 }}>🏦 Tax Pot</div>
+            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: 'var(--gold)' }}>{formatCurrency(totalTaxReserve, currency)}</div>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: '1rem', background: 'var(--border)', borderRadius: 10, padding: 4, width: 'fit-content' }}>
-        {[['all','All'],['expenses','Expenses'],['income','Income']].map(([v,l]) => (
+        {[['all', 'All'], ['expenses', 'Expenses'], ['income', 'Income']].map(([v, l]) => (
           <button key={v} onClick={() => setTab(v)} style={{
             padding: '6px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
             background: tab === v ? '#fff' : 'transparent',
@@ -133,8 +151,14 @@ export default function Transactions() {
               color: categoryColour(tx.category), whiteSpace: 'nowrap', flexShrink: 0,
             }}>{tx.category}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 600, color: 'var(--plum)', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.description}</div>
-              <div style={{ color: 'var(--text-light)', fontSize: 12 }}>{formatDate(tx.date)}{tx.notes ? ` · ${tx.notes}` : ''}</div>
+              <div style={{ fontWeight: 600, color: 'var(--plum)', fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {tx.description}
+                {tx.isSideHustle && <span style={{ marginLeft: 6, fontSize: 11, background: '#FFF7ED', color: 'var(--gold)', borderRadius: 99, padding: '1px 6px', fontWeight: 700 }}>SIDE HUSTLE</span>}
+              </div>
+              <div style={{ color: 'var(--text-light)', fontSize: 12 }}>
+                {formatDate(tx.date)}{tx.notes ? ` · ${tx.notes}` : ''}
+                {tx.isSideHustle && tx.taxReserve > 0 && ` · Tax set aside: ${formatCurrency(tx.taxReserve, currency)}`}
+              </div>
             </div>
             <div style={{
               fontFamily: "'DM Serif Display', serif", fontSize: 18,
@@ -152,76 +176,120 @@ export default function Transactions() {
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add Transaction">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', gap: 8 }}>
-            {['expense','income'].map(t => (
-              <button key={t} onClick={() => setForm(f=>({...f,type:t}))} style={{
-                flex:1, padding: '8px', borderRadius: 10, border: '2px solid',
-                borderColor: form.type===t ? (t==='expense'?'var(--pink)':'var(--teal)') : 'var(--border)',
-                background: form.type===t ? (t==='expense'?'var(--petal)':'var(--mint)') : '#fff',
-                cursor:'pointer', fontWeight:600, fontSize:14,
-                color: form.type===t ? (t==='expense'?'var(--pink)':'var(--teal)') : 'var(--text-mid)',
-                fontFamily:"'DM Sans',sans-serif",
+            {['expense', 'income'].map(t => (
+              <button key={t} onClick={() => setForm(f => ({ ...f, type: t, isSideHustle: false }))} style={{
+                flex: 1, padding: '8px', borderRadius: 10, border: '2px solid',
+                borderColor: form.type === t ? (t === 'expense' ? 'var(--pink)' : 'var(--teal)') : 'var(--border)',
+                background: form.type === t ? (t === 'expense' ? 'var(--petal)' : 'var(--mint)') : '#fff',
+                cursor: 'pointer', fontWeight: 600, fontSize: 14,
+                color: form.type === t ? (t === 'expense' ? 'var(--pink)' : 'var(--teal)') : 'var(--text-mid)',
+                fontFamily: "'DM Sans',sans-serif",
               }}>{t === 'expense' ? '💸 Expense' : '💚 Income'}</button>
             ))}
           </div>
+
           {[
-            { label:'Date', key:'date', type:'date' },
-            { label:'Description', key:'description', type:'text', placeholder:'e.g. Coffee at Starbucks' },
-            { label:'Amount', key:'amount', type:'number', placeholder:'0.00' },
+            { label: 'Date', key: 'date', type: 'date' },
+            { label: 'Description', key: 'description', type: 'text', placeholder: 'e.g. Coffee at Starbucks' },
+            { label: 'Amount', key: 'amount', type: 'number', placeholder: '0.00' },
           ].map(f => (
-            <label key={f.key} style={{ display:'flex', flexDirection:'column', gap:4 }}>
+            <label key={f.key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={labelStyle}>{f.label}</span>
-              <input type={f.type} value={form[f.key]} onChange={e=>setForm(p=>({...p,[f.key]:e.target.value}))} placeholder={f.placeholder} style={inputStyle} />
+              <input type={f.type} value={form[f.key]} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} placeholder={f.placeholder} style={inputStyle} />
             </label>
           ))}
-          <label style={{ display:'flex', flexDirection:'column', gap:4 }}>
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={labelStyle}>Category</span>
-            <select value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value}))} style={inputStyle}>
-              {categories.map(c=><option key={c}>{c}</option>)}
+            <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} style={inputStyle}>
+              {categories.map(c => <option key={c}>{c}</option>)}
             </select>
           </label>
-          <label style={{ display:'flex', flexDirection:'column', gap:4 }}>
+
+          {/* Side hustle toggle — income only */}
+          {form.type === 'income' && (
+            <div style={{ background: '#FFF7ED', borderRadius: 12, padding: '0.875rem 1rem', border: '1px solid #FDE68A' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={form.isSideHustle}
+                  onChange={e => setForm(p => ({ ...p, isSideHustle: e.target.checked }))}
+                  style={{ width: 18, height: 18, accentColor: 'var(--gold)', cursor: 'pointer' }}
+                />
+                <span style={{ fontWeight: 600, color: 'var(--plum)', fontSize: 14 }}>
+                  Is this self-employment or side hustle income?
+                </span>
+              </label>
+              {form.isSideHustle && (
+                <div style={{ marginTop: 12 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, color: 'var(--text-mid)', whiteSpace: 'nowrap' }}>Tax reserve %</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={form.taxRate}
+                      onChange={e => setForm(p => ({ ...p, taxRate: Number(e.target.value) }))}
+                      style={{ ...inputStyle, width: 80 }}
+                    />
+                    <span style={{ fontSize: 13, color: 'var(--text-mid)' }}>%</span>
+                  </label>
+                  {taxReserve > 0 && (
+                    <div style={{ background: 'var(--sunshine)', borderRadius: 10, padding: '8px 12px', fontSize: 13, color: 'var(--plum)', fontWeight: 600 }}>
+                      🏦 Penny will set aside {formatCurrency(taxReserve, currency)} for taxes from this income
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={labelStyle}>Notes (optional)</span>
-            <input value={form.notes} onChange={e=>setForm(p=>({...p,notes:e.target.value}))} placeholder="Any extra details" style={inputStyle} />
+            <input value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} placeholder="Any extra details" style={inputStyle} />
           </label>
-          <Button variant="plum" onClick={addTransaction} disabled={!form.description||!form.amount} style={{ width:'100%', justifyContent:'center', marginTop:4 }}>Add Transaction</Button>
+
+          <Button variant="plum" onClick={addTransaction} disabled={!form.description || !form.amount} style={{ width: '100%', justifyContent: 'center', marginTop: 4 }}>
+            Add Transaction
+          </Button>
         </div>
       </Modal>
 
       {/* CSV modal */}
       <Modal open={csvOpen} onClose={() => { setCsvOpen(false); setCsvParsed(null); setCsvText('') }} title="Import from CSV" width={560}>
         {!csvParsed ? (
-          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <p style={{ margin:0, color:'var(--text-mid)', fontSize:14 }}>Paste your bank statement CSV below. Penny will detect and categorise your transactions.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <p style={{ margin: 0, color: 'var(--text-mid)', fontSize: 14 }}>Paste your bank statement CSV below. Penny will detect and categorise your transactions.</p>
             <textarea
               value={csvText}
-              onChange={e=>setCsvText(e.target.value)}
+              onChange={e => setCsvText(e.target.value)}
               placeholder="Paste CSV data here…"
-              style={{ ...inputStyle, height: 180, resize:'vertical', fontFamily:'monospace', fontSize:12 }}
+              style={{ ...inputStyle, height: 180, resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }}
             />
-            <Button variant="violet" onClick={parseCSV} disabled={!csvText.trim() || csvLoading} style={{ width:'100%', justifyContent:'center' }}>
+            <Button variant="violet" onClick={parseCSV} disabled={!csvText.trim() || csvLoading} style={{ width: '100%', justifyContent: 'center' }}>
               {csvLoading ? '⏳ Parsing…' : '✨ Parse with AI'}
             </Button>
           </div>
         ) : (
-          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-            <p style={{ margin:0, color:'var(--text-mid)', fontSize:14 }}>Review and confirm {csvParsed.length} transactions:</p>
-            <div style={{ maxHeight:320, overflowY:'auto', display:'flex', flexDirection:'column', gap:8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <p style={{ margin: 0, color: 'var(--text-mid)', fontSize: 14 }}>Review and confirm {csvParsed.length} transactions:</p>
+            <div style={{ maxHeight: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
               {csvParsed.map((tx, i) => (
-                <div key={i} style={{ display:'flex', gap:10, alignItems:'center', padding:'0.75rem', background:'var(--border)', borderRadius:10 }}>
-                  <input type="checkbox" checked={tx.selected} onChange={e => setCsvParsed(p=>p.map((t,j)=>j===i?{...t,selected:e.target.checked}:t))} style={{ width:18, height:18 }} />
-                  <div style={{ flex:1, fontSize:13 }}>
-                    <div style={{ fontWeight:600, color:'var(--plum)' }}>{tx.description}</div>
-                    <div style={{ color:'var(--text-mid)' }}>{tx.date} · {tx.category}</div>
+                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '0.75rem', background: 'var(--border)', borderRadius: 10 }}>
+                  <input type="checkbox" checked={tx.selected} onChange={e => setCsvParsed(p => p.map((t, j) => j === i ? { ...t, selected: e.target.checked } : t))} style={{ width: 18, height: 18 }} />
+                  <div style={{ flex: 1, fontSize: 13 }}>
+                    <div style={{ fontWeight: 600, color: 'var(--plum)' }}>{tx.description}</div>
+                    <div style={{ color: 'var(--text-mid)' }}>{tx.date} · {tx.category}</div>
                   </div>
-                  <div style={{ color: tx.type==='income'?'var(--teal)':'var(--pink)', fontWeight:600, fontSize:14 }}>
-                    {tx.type==='income'?'+':'-'}{formatCurrency(tx.amount, currency)}
+                  <div style={{ color: tx.type === 'income' ? 'var(--teal)' : 'var(--pink)', fontWeight: 600, fontSize: 14 }}>
+                    {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount, currency)}
                   </div>
                 </div>
               ))}
             </div>
-            <div style={{ display:'flex', gap:10 }}>
-              <Button variant="teal" onClick={confirmImport} style={{ flex:1, justifyContent:'center' }}>Confirm Import</Button>
-              <Button variant="ghost" onClick={() => setCsvParsed(null)} style={{ flex:1, justifyContent:'center' }}>Back</Button>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <Button variant="teal" onClick={confirmImport} style={{ flex: 1, justifyContent: 'center' }}>Confirm Import</Button>
+              <Button variant="ghost" onClick={() => setCsvParsed(null)} style={{ flex: 1, justifyContent: 'center' }}>Back</Button>
             </div>
           </div>
         )}
@@ -230,9 +298,9 @@ export default function Transactions() {
   )
 }
 
-const labelStyle = { fontSize:14, fontWeight:600, color:'var(--text-mid)' }
+const labelStyle = { fontSize: 14, fontWeight: 600, color: 'var(--text-mid)' }
 const inputStyle = {
-  border:'1.5px solid var(--border)', borderRadius:10, padding:'10px 14px',
-  fontSize:14, fontFamily:"'DM Sans',sans-serif", color:'var(--plum)',
-  outline:'none', width:'100%', boxSizing:'border-box',
+  border: '1.5px solid var(--border)', borderRadius: 10, padding: '10px 14px',
+  fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: 'var(--plum)',
+  outline: 'none', width: '100%', boxSizing: 'border-box',
 }

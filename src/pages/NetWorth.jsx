@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { useStorage } from '../hooks/useStorage'
 import { formatCurrency } from '../utils/formatters'
+import InfoTooltip from '../components/ui/Tooltip'
 
 export default function NetWorth() {
   const [debts] = useStorage('penny_debts', [])
@@ -27,7 +28,10 @@ export default function NetWorth() {
 
   return (
     <div style={{ padding: '1.5rem', maxWidth: 900, margin: '0 auto' }}>
-      <h1 style={{ fontFamily: "'DM Serif Display', serif", color: 'var(--plum)', margin: '0 0 1.5rem', fontSize: 28 }}>Net Worth</h1>
+      <h1 style={{ fontFamily: "'DM Serif Display', serif", color: 'var(--plum)', margin: '0 0 1.5rem', fontSize: 28, display: 'flex', alignItems: 'center', gap: 8 }}>
+        Net Worth
+        <InfoTooltip content="Everything you own minus everything you owe. A positive number means you own more than you owe."><span /></InfoTooltip>
+      </h1>
 
       {/* Net worth display */}
       <div style={{ textAlign: 'center', marginBottom: '2rem', background: '#fff', borderRadius: 20, padding: '2rem', boxShadow: '0 2px 16px rgba(61,43,107,0.06)' }}>

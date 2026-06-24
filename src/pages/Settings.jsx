@@ -2,10 +2,53 @@ import React, { useState } from 'react'
 import Button from '../components/ui/Button'
 import { useStorage, getStored, setStored } from '../hooks/useStorage'
 import { callPenny } from '../hooks/usePenny'
+import { DEFAULT_CATEGORIES } from '../utils/categories'
 
-const DEFAULT_CATEGORIES = [
-  'Housing','Food & Groceries','Transport','Utilities','Entertainment',
-  'Health','Clothing','Personal Care','Savings','Other',
+const CURRENCIES = ['USD','GBP','EUR','CAD','AUD','ZAR','NGN','JPY','CHF','SEK','NZD','SGD','HKD','INR','BRL']
+
+const BUDGET_METHODS = [
+  { id: 'zerobased', label: 'Zero-based', desc: 'Assign every dollar a job until zero is left unallocated.' },
+  { id: 'payyourselffirst', label: 'Pay yourself first', desc: 'Save first, spend the rest freely.' },
+  { id: '4buckets', label: '4 Buckets (recommended)', desc: 'Fixed Needs, Variable Needs, Goals, Fun. Simple and flexible.' },
+]
+
+const LIFE_EVENTS = [
+  {
+    id: 'business',
+    icon: '💼',
+    title: 'Starting or running a business',
+    desc: 'Enables Business categories, tax pot, and irregular income tracking.',
+  },
+  {
+    id: 'newbaby',
+    icon: '👶',
+    title: 'New baby or maternity',
+    desc: 'Adds Childcare and Family categories. Emergency fund target adjusted to 6 months.',
+  },
+  {
+    id: 'divorce',
+    icon: '🌱',
+    title: 'Divorce or separation',
+    desc: 'Gentle prompts to build individual credit and a personal emergency fund.',
+  },
+  {
+    id: 'returningtowork',
+    icon: '💪',
+    title: 'Returning to work',
+    desc: 'Highlights childcare cost planning and income ramp-up tracking.',
+  },
+  {
+    id: 'solo',
+    icon: '🦋',
+    title: 'Managing finances solo',
+    desc: 'Single-income recommendations. Stronger emphasis on 6-month emergency fund.',
+  },
+  {
+    id: 'none',
+    icon: '✨',
+    title: 'None of these apply right now',
+    desc: 'Default state — no adjustments applied.',
+  },
 ]
 
 export default function Settings() {
@@ -19,6 +62,20 @@ export default function Settings() {
   const [newCat, setNewCat] = useState('')
   const email = getStored('penny_email', '')
   const [income, setIncome] = useStorage('penny_monthly_income', 0)
+  const [budgetMethod, setBudgetMethod] = useStorage('penny_budget_method', '4buckets')
+  const [lifeEvents, setLifeEvents] = useStorage('penny_life_events', ['none'])
+
+  function toggleLifeEvent(id) {
+    setLifeEvents(prev => {
+      if (id === 'none') return ['none']
+      const filtered = (prev || []).filter(e => e !== 'none')
+      if (filtered.includes(id)) {
+        const next = filtered.filter(e => e !== id)
+        return next.length === 0 ? ['none'] : next
+      }
+      return [...filtered, id]
+    })
+  }
 
   async function testKey() {
     if (!apiKey.trim()) return
@@ -40,7 +97,7 @@ export default function Settings() {
   }
 
   function exportData() {
-    const keys = ['penny_transactions','penny_budgets','penny_categories','penny_debts','penny_goals','penny_sinking_funds','penny_bills','penny_assets','penny_liabilities','penny_name','penny_currency','penny_monthly_income']
+    const keys = ['penny_transactions','penny_budgets','penny_categories','penny_debts','penny_goals','penny_bills','penny_assets','penny_liabilities','penny_name','penny_currency','penny_monthly_income','penny_budget_method','penny_life_events']
     const data = {}
     keys.forEach(k => { data[k] = getStored(k) })
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -53,7 +110,7 @@ export default function Settings() {
   function clearData() {
     if (!confirm('This will delete ALL your Penny data permanently. Are you sure?')) return
     if (!confirm('Last chance — this cannot be undone. Clear everything?')) return
-    const keys = ['penny_transactions','penny_budgets','penny_categories','penny_debts','penny_goals','penny_sinking_funds','penny_bills','penny_assets','penny_liabilities','penny_monthly_income','penny_api_key']
+    const keys = ['penny_transactions','penny_budgets','penny_categories','penny_debts','penny_goals','penny_bills','penny_assets','penny_liabilities','penny_monthly_income','penny_api_key','penny_budget_method','penny_life_events']
     keys.forEach(k => localStorage.removeItem(k))
     window.location.reload()
   }
@@ -70,8 +127,6 @@ export default function Settings() {
     setCategories(prev => prev.filter(c => c !== cat))
   }
 
-  const CURRENCIES = ['USD','GBP','EUR','CAD','AUD','ZAR','NGN','JPY','CHF','SEK','NZD','SGD','HKD','INR','BRL']
-
   return (
     <div style={{ padding: '1.5rem', maxWidth: 700, margin: '0 auto' }}>
       <h1 style={{ fontFamily: "'DM Serif Display', serif", color: 'var(--plum)', margin: '0 0 1.5rem', fontSize: 28 }}>Settings</h1>
@@ -79,19 +134,78 @@ export default function Settings() {
       {/* Profile */}
       <Section title="Profile 👤">
         <Row label="Your Name">
-          <input value={name} onChange={e=>setName(e.target.value)} style={inputSt} placeholder="First name" />
+          <input value={name} onChange={e => setName(e.target.value)} style={inputSt} placeholder="First name" />
         </Row>
         <Row label="Email">
           <span style={{ color: 'var(--text-mid)', fontSize: 14 }}>{email}</span>
         </Row>
         <Row label="Currency">
-          <select value={currency} onChange={e=>setCurrency(e.target.value)} style={inputSt}>
-            {CURRENCIES.map(c=><option key={c}>{c}</option>)}
+          <select value={currency} onChange={e => setCurrency(e.target.value)} style={inputSt}>
+            {CURRENCIES.map(c => <option key={c}>{c}</option>)}
           </select>
         </Row>
         <Row label="Monthly Income">
-          <input type="number" value={income||''} onChange={e=>setIncome(Number(e.target.value)||0)} style={{...inputSt,width:160}} placeholder="0.00" />
+          <input type="number" value={income || ''} onChange={e => setIncome(Number(e.target.value) || 0)} style={{ ...inputSt, width: 160 }} placeholder="0.00" />
         </Row>
+      </Section>
+
+      {/* Budget method */}
+      <Section title="Budget method 🎯">
+        <p style={{ color: 'var(--text-mid)', fontSize: 14, margin: '0 0 1rem' }}>
+          Choose how you want Penny to organise your spending. This affects the Budget page layout.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {BUDGET_METHODS.map(m => (
+            <label key={m.id} style={{
+              display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer',
+              background: budgetMethod === m.id ? 'var(--lavender)' : '#FAFAF8',
+              border: `2px solid ${budgetMethod === m.id ? 'var(--violet)' : 'var(--border)'}`,
+              borderRadius: 12, padding: '0.875rem 1rem', transition: 'all 0.2s',
+            }}>
+              <input
+                type="radio"
+                name="budgetMethod"
+                value={m.id}
+                checked={budgetMethod === m.id}
+                onChange={() => setBudgetMethod(m.id)}
+                style={{ marginTop: 3, accentColor: 'var(--violet)' }}
+              />
+              <div>
+                <div style={{ fontWeight: 600, color: 'var(--plum)', fontSize: 14 }}>{m.label}</div>
+                <div style={{ color: 'var(--text-mid)', fontSize: 13, marginTop: 2 }}>{m.desc}</div>
+              </div>
+            </label>
+          ))}
+        </div>
+      </Section>
+
+      {/* My situation — life events */}
+      <Section title="My situation 🌸">
+        <p style={{ color: 'var(--text-mid)', fontSize: 14, margin: '0 0 1rem' }}>
+          Tell Penny what's going on in your life and she'll tailor her recommendations. Select all that apply.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px,1fr))', gap: 10 }}>
+          {LIFE_EVENTS.map(ev => {
+            const selected = (lifeEvents || []).includes(ev.id)
+            return (
+              <div
+                key={ev.id}
+                onClick={() => toggleLifeEvent(ev.id)}
+                style={{
+                  border: `2px solid ${selected ? 'var(--pink)' : 'var(--border)'}`,
+                  background: selected ? 'var(--petal)' : '#FAFAF8',
+                  borderRadius: 14, padding: '1rem',
+                  cursor: 'pointer', transition: 'all 0.2s',
+                }}
+              >
+                <div style={{ fontSize: 22, marginBottom: 6 }}>{ev.icon}</div>
+                <div style={{ fontWeight: 600, color: 'var(--plum)', fontSize: 14, marginBottom: 4 }}>{ev.title}</div>
+                <div style={{ color: 'var(--text-mid)', fontSize: 12, lineHeight: 1.5 }}>{ev.desc}</div>
+                {selected && <div style={{ marginTop: 8, color: 'var(--pink)', fontWeight: 700, fontSize: 12 }}>✓ Active</div>}
+              </div>
+            )
+          })}
+        </div>
       </Section>
 
       {/* API Key */}
@@ -107,7 +221,7 @@ export default function Settings() {
             placeholder="sk-ant-..."
             style={{ ...inputSt, paddingRight: 50, width: '100%' }}
           />
-          <button onClick={() => setShowKey(v=>!v)} style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', fontSize:18 }}>
+          <button onClick={() => setShowKey(v => !v)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 18 }}>
             {showKey ? '🙈' : '👁️'}
           </button>
         </div>
@@ -130,12 +244,12 @@ export default function Settings() {
               display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--plum)', fontWeight: 500,
             }}>
               {cat}
-              <button onClick={() => removeCategory(cat)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:14, color:'var(--text-light)', padding:0, lineHeight:1 }}>×</button>
+              <button onClick={() => removeCategory(cat)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text-light)', padding: 0, lineHeight: 1 }}>×</button>
             </div>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <input value={newCat} onChange={e=>setNewCat(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addCategory()} placeholder="New category…" style={{ ...inputSt, flex:1 }} />
+          <input value={newCat} onChange={e => setNewCat(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCategory()} placeholder="New category…" style={{ ...inputSt, flex: 1 }} />
           <Button variant="teal" onClick={addCategory} disabled={!newCat.trim()} small>+ Add</Button>
         </div>
       </Section>
@@ -154,18 +268,9 @@ export default function Settings() {
       {/* Legal */}
       <Section title="Legal ⚖️">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <a href="/privacy" style={legalLink}>
-            📄 Privacy Policy
-          </a>
-          <a href="/terms" style={legalLink}>
-            📋 Terms of Service
-          </a>
-          <a
-            href="mailto:createwithskai@gmail.com?subject=Penny%20Data%20Deletion%20Request"
-            style={{ ...legalLink, color: 'var(--over)' }}
-          >
-            🗑️ Delete my data
-          </a>
+          <a href="/privacy" style={legalLink}>📄 Privacy Policy</a>
+          <a href="/terms" style={legalLink}>📋 Terms of Service</a>
+          <a href="mailto:createwithskai@gmail.com?subject=Penny%20Data%20Deletion%20Request" style={{ ...legalLink, color: 'var(--over)' }}>🗑️ Delete my data</a>
           <p style={{ fontSize: 12, color: 'var(--text-light)', margin: '4px 0 0', lineHeight: 1.5 }}>
             To request deletion of your data, email us and we'll process your request within 30 days. Note: all app data is stored locally on your device — you can also clear it instantly via the Data section above.
           </p>
@@ -175,9 +280,9 @@ export default function Settings() {
       {/* About */}
       <Section title="About Penny">
         <div style={{ color: 'var(--text-mid)', fontSize: 14, lineHeight: 1.8 }}>
-          <div>Version 1.0.0</div>
+          <div>Version 2.0.0</div>
           <div>Built with ❤️ for women who want to own their money.</div>
-          <div>Support: <a href="mailto:support@penny.app" style={{ color: 'var(--violet)' }}>support@penny.app</a></div>
+          <div>Support: <a href="mailto:createwithskai@gmail.com" style={{ color: 'var(--violet)' }}>createwithskai@gmail.com</a></div>
         </div>
       </Section>
     </div>
@@ -203,9 +308,9 @@ function Row({ label, children }) {
 }
 
 const inputSt = {
-  border:'1.5px solid var(--border)', borderRadius:10, padding:'10px 14px',
-  fontSize:14, fontFamily:"'DM Sans',sans-serif", color:'var(--plum)',
-  outline:'none', boxSizing:'border-box', background:'#fff',
+  border: '1.5px solid var(--border)', borderRadius: 10, padding: '10px 14px',
+  fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: 'var(--plum)',
+  outline: 'none', boxSizing: 'border-box', background: '#fff',
 }
 
 const legalLink = {

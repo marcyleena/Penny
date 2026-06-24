@@ -7,8 +7,20 @@ import PennyTake from '../components/penny/PennyTake'
 import { useMonthData } from '../hooks/useMonthData'
 import { useStorage } from '../hooks/useStorage'
 import { formatCurrency, formatMonth, formatShortDate } from '../utils/formatters'
-import { categoryColour, categoryBg } from '../utils/colours'
+import { categoryColour } from '../utils/colours'
 import { calcStatus } from '../utils/calculations'
+
+function nextTaxDeadline() {
+  const now = new Date()
+  const y = now.getFullYear()
+  const deadlines = [
+    { quarter: 'Q1', date: new Date(y, 3, 15), label: 'April 15' },
+    { quarter: 'Q2', date: new Date(y, 5, 15), label: 'June 15' },
+    { quarter: 'Q3', date: new Date(y, 8, 15), label: 'September 15' },
+    { quarter: 'Q4', date: new Date(y + 1, 0, 15), label: 'January 15' },
+  ]
+  return deadlines.find(d => d.date >= now) || deadlines[3]
+}
 
 export default function Dashboard() {
   const now = new Date()
@@ -18,7 +30,7 @@ export default function Dashboard() {
   const [debts] = useStorage('penny_debts', [])
   const [goals] = useStorage('penny_goals', [])
   const [bills] = useStorage('penny_bills', [])
-  const [budgets] = useStorage('penny_budgets', {})
+  const [transactions] = useStorage('penny_transactions', [])
 
   const { totalIncome, totalSpent, remaining, byCategory, monthBudgets } = useMonthData(year, month)
 
@@ -61,6 +73,12 @@ export default function Dashboard() {
     return s === 'ok'
   })
 
+  // Tax pot
+  const sideHustleTx = transactions.filter(t => t.isSideHustle && t.type === 'income')
+  const totalTaxReserve = sideHustleTx.reduce((s, t) => s + (t.taxReserve || 0), 0)
+  const hasTaxPot = totalTaxReserve > 0
+  const nextDeadline = nextTaxDeadline()
+
   return (
     <div style={{ padding: '1.5rem', maxWidth: 1100, margin: '0 auto' }}>
       {/* Month selector */}
@@ -96,6 +114,28 @@ export default function Dashboard() {
         <StatCard label="Remaining" value={formatCurrency(remaining, currency)} icon="✨" bg="var(--lavender)" color="var(--violet)" />
         <StatCard label="Bills Due" value={formatCurrency(totalBillsDue, currency)} icon="🧾" bg="var(--sunshine)" color="var(--gold)" sub={`${bills.filter(b=>!b.paid).length} unpaid`} />
       </div>
+
+      {/* Tax Pot */}
+      {hasTaxPot && (
+        <div style={{ background: 'linear-gradient(135deg, #FFF7ED 0%, #FFFBF2 100%)', borderRadius: 16, padding: '1.25rem 1.5rem', marginBottom: '1.5rem', boxShadow: '0 2px 16px rgba(61,43,107,0.06)', borderLeft: '4px solid var(--gold)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 20 }}>🏦</span>
+                <span style={{ fontFamily: "'DM Serif Display', serif", color: 'var(--plum)', fontSize: 18 }}>Tax Pot</span>
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-mid)', lineHeight: 1.6 }}>
+                Your tax pot has <strong style={{ color: 'var(--plum)' }}>{formatCurrency(totalTaxReserve, currency)}</strong> ready.<br />
+                <strong>{nextDeadline.quarter}</strong> estimated taxes are due <strong>{nextDeadline.label}</strong>.
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 28, color: 'var(--gold)' }}>{formatCurrency(totalTaxReserve, currency)}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-light)' }}>Set aside from side hustle income</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Overall budget bar */}
       {totalBudget > 0 && (

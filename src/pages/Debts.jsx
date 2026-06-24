@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Button from '../components/ui/Button'
 import Modal from '../components/ui/Modal'
 import ProgressBar from '../components/ui/ProgressBar'
+import Tooltip from '../components/ui/Tooltip'
 import { useStorage } from '../hooks/useStorage'
 import { formatCurrency } from '../utils/formatters'
 import { calcDebtPayoff, snowballOrder, avalancheOrder } from '../utils/calculations'
@@ -99,7 +100,7 @@ export default function Debts() {
       </div>
 
       {/* Strategy */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
         {[['snowball','❄️ Snowball'],['avalanche','🌊 Avalanche']].map(([v,l]) => (
           <button key={v} onClick={() => setStrategy(v)} style={{
             padding: '8px 18px', borderRadius: 10, border: '2px solid',
@@ -110,6 +111,15 @@ export default function Debts() {
             fontFamily: "'DM Sans',sans-serif",
           }}>{l}</button>
         ))}
+        <span style={{ fontSize: 13, color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Tooltip content="Pay minimums on all debts, then throw extra money at your smallest balance first. Quick wins keep you motivated.">
+            Snowball
+          </Tooltip>
+          {' vs '}
+          <Tooltip content="Pay minimums on all debts, then attack your highest interest rate first. Saves the most money overall.">
+            Avalanche
+          </Tooltip>
+        </span>
       </div>
 
       {/* Debt cards */}
@@ -130,7 +140,11 @@ export default function Debts() {
                     <div style={{ fontWeight: 700, color: 'var(--plum)', fontSize: 16 }}>
                       {strategy === 'snowball' ? `#${i+1} · ` : ''}{debt.name}
                     </div>
-                    <div style={{ color: 'var(--text-mid)', fontSize: 13 }}>{debt.rate}% APR · Min ${debt.minPayment}/mo</div>
+                    <div style={{ color: 'var(--text-mid)', fontSize: 13 }}>
+                      {debt.rate}%{' '}
+                      <Tooltip content="The yearly cost of borrowing money, shown as a percentage. Higher APR means you pay more over time.">APR</Tooltip>
+                      {' · Min $'}{debt.minPayment}/mo
+                    </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: 'var(--over)' }}>
