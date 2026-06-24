@@ -61,16 +61,23 @@ export default function Login({ onLogin }) {
     if (password.length < 8) { setError('Password must be at least 8 characters.'); return }
     setLoading(true)
     setError('')
+    console.log('[Penny signup] Starting signup for:', email.trim())
+    console.log('[Penny signup] Supabase configured:', useSupabase)
 
     // Step 1: verify purchase via Google Sheet
     try {
+      console.log('[Penny signup] Step 1: verifying purchase via Google Sheet...')
       const verified = await verifyPurchase(email)
+      console.log('[Penny signup] Google Sheet verification result:', verified)
       if (!verified) {
+        console.log('[Penny signup] Verification failed — email not in sheet')
         setError("That email isn't in our purchase records. Use the email you bought Penny with.")
         setLoading(false)
         return
       }
-    } catch {
+      console.log('[Penny signup] Verification passed ✓')
+    } catch (err) {
+      console.error('[Penny signup] Google Sheet fetch error:', err)
       setError("Couldn't verify your purchase. Check your connection and try again.")
       setLoading(false)
       return
@@ -78,24 +85,36 @@ export default function Login({ onLogin }) {
 
     // Step 2: create Supabase account
     if (useSupabase) {
+      console.log('[Penny signup] Step 2: calling supabase.auth.signUp...')
       const { data, error: err } = await supabase.auth.signUp({ email: email.trim(), password })
+      console.log('[Penny signup] signUp response — data:', data, 'error:', err)
       if (err) {
+        console.error('[Penny signup] Supabase signUp error:', err.message, err)
         setError(err.message || 'Account creation failed. Try again.')
         setLoading(false)
         return
       }
+      console.log('[Penny signup] signUp success. user:', data?.user?.id, 'session:', !!data?.session)
       if (data?.user) {
-        await supabase.from('profiles').upsert({
+        console.log('[Penny signup] Step 3: inserting profile row...')
+        const { error: profileErr } = await supabase.from('profiles').upsert({
           id: data.user.id,
           email: email.trim(),
           currency: 'USD',
           budget_method: '4buckets',
-        }).catch(() => {})
+        })
+        if (profileErr) {
+          console.error('[Penny signup] Profile insert error (non-fatal):', profileErr.message, profileErr)
+        } else {
+          console.log('[Penny signup] Profile row inserted ✓')
+        }
       }
+      console.log('[Penny signup] Calling onLogin...')
       setStored('penny_email', email.trim())
       onLogin(email.trim())
     } else {
       // No Supabase — just grant access after purchase verification
+      console.log('[Penny signup] No Supabase — granting access via Google Sheet only')
       setStored('penny_email', email.trim())
       onLogin(email.trim())
     }
