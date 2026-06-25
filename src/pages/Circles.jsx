@@ -456,7 +456,7 @@ function CreateCircleModal({ open, onClose, onCreated, currency }) {
             <input value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Girls' Savings Club" style={inp} />
           </label>
           <span style={lbl}>Mode</span>
-          {[['rotating', '🔄 Rotating savings (Susu)', 'The full pot rotates to one member each period until everyone has received it.'], ['shared_goal', '🎯 Shared goal', 'Everyone saves toward a single goal together.']].map(([v, l, d]) => (
+          {[['rotating', '🔄 Rotating savings', 'The full pot rotates to one member each period until everyone has received it.'], ['shared_goal', '🎯 Shared goal', 'Everyone saves toward a single goal together.']].map(([v, l, d]) => (
             <div key={v} onClick={() => set('mode', v)} style={{
               border: `2px solid ${form.mode === v ? 'var(--pink)' : 'var(--border)'}`,
               background: form.mode === v ? 'var(--petal)' : '#fff',
